@@ -1,5 +1,6 @@
 const { ApolloServer } = require("@apollo/server");
 const { startStandaloneServer } = require("@apollo/server/standalone");
+const uniqid = require("uniqid");
 
 const { authors } = require("./data/authors");
 const { books } = require("./data/books");
@@ -14,6 +15,13 @@ const typeDefs = `#graphql
         books(filter: String): [Book]
     }
 
+    input AddAuthorInput {
+      name: String! 
+      surname: String! 
+      email: String! 
+      gender: String
+    }
+
     type Book {
         id: ID!
         title: String!
@@ -22,11 +30,22 @@ const typeDefs = `#graphql
         publish: Boolean
     }
 
+    input AddBookInput {
+      title: String!
+      page: Int
+      author: ID!
+      publish: Boolean
+    }
     type Query {
         book(id: ID): Book
         author(id: ID): Author
         books: [Book]
         authors: [Author]
+    }
+
+    type Mutation {
+      addAuthor(input: AddAuthorInput!): Author!
+      addBook(data: AddBookInput): Book!
     }
 `;
 
@@ -38,23 +57,56 @@ const resolvers = {
       return data;
     },
     books: () => books,
-    author: (parents, args) => authors.find(author => String(author.id) === String(args.id)),
+    author: (parents, args) =>
+      authors.find((author) => String(author.id) === String(args.id)),
     authors: () => authors,
   },
   Book: {
     author: (parent, args) => {
-      const author = authors.find(author => String(author.id) === String(parent.author));
+      const author = authors.find(
+        (author) => String(author.id) === String(parent.author)
+      );
       return author;
-    }
+    },
   },
   Author: {
     books: (parent, args) => {
-      const authorBooks = books.filter(book => 
-        String(book.author) === String(parent.id) && 
-        book.title.startsWith(args.filter));
+      const authorBooks = books.filter(
+        (book) =>
+          String(book.author) === String(parent.id) &&
+          book.title.startsWith(args.filter)
+      );
       return authorBooks;
-    }
-  }
+    },
+  },
+  Mutation: {
+    addAuthor: (_, { input }) => {
+      const { name, surname, email, gender } = input;
+      const author = {
+        id: uniqid(),
+        name,
+        surname,
+        email,
+        gender,
+        books: [],
+      };
+
+      authors.push(author);
+      return author;
+    },
+    addBook: (_, { data }) => {
+      const { title, page, author, publish } = data;
+      const book = {
+        id: uniqid(),
+        title,
+        page,
+        author,
+        publish,
+      };
+      books.push(book);
+      return book;
+    },
+  },
 };
 
 const server = new ApolloServer({ typeDefs, resolvers });
