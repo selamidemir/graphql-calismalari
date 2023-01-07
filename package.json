@@ -9,6 +9,7 @@
     "dev": "nodemon app",
     "dev1": "nodemon app1",
     "dev2": "nodemon app2",
+    "dev3": "nodemon app3",
     "odev": "nodemon odev"
   },
   "keywords": [],
