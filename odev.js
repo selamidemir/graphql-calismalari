@@ -1,3 +1,4 @@
+const uniqid = require("uniqid");
 const { ApolloServer } = require("@apollo/server");
 const { startStandaloneServer } = require("@apollo/server/standalone");
 
@@ -10,6 +11,16 @@ const typeDefs = `#graphql
         id: ID!
         username: String!
         email: String!
+    }
+
+    input AddUserInput {
+      username: String!
+      email: String!
+    }
+
+    input UpdateUserInput {
+      username: String
+      email: String
     }
 
     type Event {
@@ -57,6 +68,14 @@ const typeDefs = `#graphql
         participants: [Participant!]
         participant(id: ID!): Participant
     }
+
+    type Mutation {
+      # Users
+      addUser(input: AddUserInput!): User!
+      updateUser(id: ID!, input: UpdateUserInput): User!
+      deleteUser(id: ID!): User!
+      deleteAllUsers: Int!
+    }
 `;
 
 const resolvers = {
@@ -76,6 +95,48 @@ const resolvers = {
       participants.filter((participant) => participant.event_id === parent.id),
     location: (parent, args) =>
       locations.find((location) => location.id === parent.location_id),
+  },
+  Mutation: {
+    // Users
+    addUser: (_, { input }) => {
+      const { username, email } = input;
+      if (!username || !email) throw new Error("Some fileds is empty.");
+      const user = {
+        id: uniqid(),
+        username,
+        email,
+      };
+      users.push(user);
+      return user;
+    },
+    updateUser: (_, { id, input }) => {
+      console.log(id, input);
+      const { username, email } = input;
+      const userIndex = users.findIndex(
+        (user) => String(user.id) === String(id)
+      );
+      if (userIndex < 0) throw new Error("No user found.");
+      users[userIndex] = {
+        id,
+        username: username ? username : users[userIndex].username,
+        email: email ? email : users[userIndex].email,
+      };
+      return users[userIndex];
+    },
+    deleteUser: (_, { id }) => {
+      const userIndex = users.findIndex(
+        (user) => String(user.id) === String(id)
+      );
+      if (userIndex < 0) throw new Error("No user found.");
+      const user = users[userIndex];
+      users.splice(userIndex, 1);
+      return user;
+    },
+    deleteAllUsers: () => {
+      const length = users.length;
+      users.length = 0;
+      return length;
+    }
   },
 };
 

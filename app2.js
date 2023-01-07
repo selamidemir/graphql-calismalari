@@ -22,6 +22,13 @@ const typeDefs = `#graphql
       gender: String
     }
 
+    input UpdateAuthorInput {
+      name: String
+      surname: String
+      gender: String
+      email: String
+    }
+
     type Book {
         id: ID!
         title: String!
@@ -36,6 +43,14 @@ const typeDefs = `#graphql
       author: ID!
       publish: Boolean
     }
+
+    input UpdateBookInput {
+      title: String
+      page: Int
+      author: ID
+      publish: Boolean
+    }
+
     type Query {
         book(id: ID): Book
         author(id: ID): Author
@@ -43,9 +58,19 @@ const typeDefs = `#graphql
         authors: [Author]
     }
 
+    input DeleteAllOutput {
+      length: Int
+    }
     type Mutation {
+      # Users
       addAuthor(input: AddAuthorInput!): Author!
+      updateAuthor(id: ID, input: UpdateAuthorInput!): Author!
+
+      # Books 
       addBook(data: AddBookInput): Book!
+      updateBook(id: ID, input: UpdateBookInput): Book!
+      deleteBook(id: ID!): Book!
+      deleteAllBooks: Int!
     }
 `;
 
@@ -80,6 +105,7 @@ const resolvers = {
     },
   },
   Mutation: {
+    // Author
     addAuthor: (_, { input }) => {
       const { name, surname, email, gender } = input;
       const author = {
@@ -94,6 +120,21 @@ const resolvers = {
       authors.push(author);
       return author;
     },
+    updateAuthor: (_, { id, input }) => {
+      const authorIndex = authors.findIndex(
+        (author) => String(author.id) === String(id)
+      );
+      if (authorIndex < 0) {
+        throw new Error("No found an author.");
+      }
+      authors[authorIndex] = {
+        ...authors[authorIndex],
+        ...input,
+      };
+      return authors[authorIndex];
+    },
+
+    // Books
     addBook: (_, { data }) => {
       const { title, page, author, publish } = data;
       const book = {
@@ -106,6 +147,34 @@ const resolvers = {
       books.push(book);
       return book;
     },
+    updateBook: (_, { id, input }) => {
+      const bookIndex = books.findIndex(
+        (book) => String(book.id) === String(id)
+      );
+      if (bookIndex < 0) throw new Error("No book found.");
+
+      books[bookIndex] = {
+        ...books[bookIndex],
+        ...input,
+      };
+
+      return books[bookIndex];
+    },
+    deleteBook: (_, { id }) => {
+      const bookIndex = books.findIndex(
+        (book) => String(book.id) === String(id)
+      );
+      const book = books[bookIndex];
+      if (bookIndex < 0) throw new Error("No Book found.");
+
+      books.splice(bookIndex, 1);
+      return book;
+    },
+    deleteAllBooks: (_, {id}) => {
+      const length = books.length;
+      books.length = 0;
+      return length;
+    }
   },
 };
 
