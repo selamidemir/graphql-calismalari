@@ -1,4 +1,4 @@
-const { createPubSub } = require("graphql-yoga");
+const { createPubSub, filter } = require("graphql-yoga");
 const uniqid = require("uniqid");
 
 const { authors } = require("../data/authors");
@@ -148,10 +148,14 @@ exports.resolvers = {
     },
 
     // Book
-    bookAdded: {
-      subscribe: () => pubSub.subscribe("bookAdded"),
-      resolve: (payload) => payload,
-    },
+    bookAdded: filter(
+        {subscribe: () => pubSub.subscribe("bookAdded"),
+        resolve: (payload) => payload}, filter(value => {
+            console.log("value", value)
+            return true
+        })
+    )
+    ,
     bookUpdated: {
       subscribe: () => pubSub.subscribe("bookUpdated"),
       resolve: (payload) => payload,
