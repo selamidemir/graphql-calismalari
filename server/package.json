@@ -1,0 +1,26 @@
+{
+  "name": "icalisma",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app",
+    "dev": "nodemon app",
+    "dev1": "nodemon app1",
+    "dev2": "nodemon app2",
+    "dev3": "nodemon app3",
+    "odev": "nodemon odev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@apollo/server": "^4.3.0",
+    "@graphql-tools/load-files": "^6.6.1",
+    "@graphql-yoga/plugin-graphql-sse": "^1.0.1-alpha-20221221152558-f787b494",
+    "graphql": "^16.6.0",
+    "nodemon": "^2.0.20",
+    "uniqid": "^5.4.0"
+  }
+}
